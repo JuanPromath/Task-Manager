@@ -1,0 +1,6 @@
+Estudos Banco de dados,1.028,4.62
+Estudos logica e progromação,3.741,4.62
+estudos lingua portuguesa,2.224,4.48
+Estudos Matemática,2.69806,4.48
+projeto TK,0.0,4.48
+Estudos violao,4.932,5.32
