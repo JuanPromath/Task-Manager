@@ -1,9 +1,11 @@
 
+import math
+
 def horaParaHorasBonita(horasFeia):
     segundos = horasFeia * 3600
     return formatHMS(segundos)
 
-def formatHMS(segundos):
+def formatHMS(segundos):#recebe tempo em segundos, e o converte em um objeto hora formatada
 
     return {
         'hora': int(segundos/3600),
@@ -19,7 +21,7 @@ def criarHora():
 
     return hora
 
-def diffHoras(hora, hora1):
+def diffHoras(hora, hora1):#recebe dois objetos hora formata, converte em segundos, realiza a subtração, e chama uma função para converter o resultado para objeto hora formatada
     segundos = (hora["hora"] * 60 + hora["minuto"]) * 60 + hora["segundo"]
     segundos1 = (hora1["hora"] * 60 + hora1["minuto"]) * 60 + hora1["segundo"]
 
@@ -35,16 +37,38 @@ def sumHoras(hora, hora1):# possivel erro em horários perto do fim do dia
 
     return formatHMS(r)
 
+# transforma o objeto de horas em formato h:s:m em uma string hh:mm:ss
+def partHour(part):#faz zeropad de HH ou MM ou SS
+    part = str(part)
+    if len(part) < 2:
+        part = '0' + part
+    return part
+
+def objetoHorasParaStringHoras(horas):
+    res = f"{partHour(horas["hora"])}:{partHour(horas["minuto"])}:{partHour(horas["segundo"])}"
+    return res
+
+def lessDecimalBadHour(hora,target):#ver se dar para corte bits desnecessários no float do python. UwU
+    casas = 1
+    while horaParaHorasBonita(math.ceil(hora * (10 * 10**(casas-1))) / (10 * 10**(casas-1))) != target:
+        casas += 1
+        rounded = math.ceil(hora * (10 * 10**(casas-1))) / (10 * 10**(casas-1))
+        print(f"{(rounded)} - {objetoHorasParaStringHoras(horaParaHorasBonita(rounded))}")
+    else:
+        return math.ceil(hora * (10 * 10**(casas-1))) / (10 * 10**(casas-1))
+
 def converteParaDecimalFeio(hora):
     segundos = (hora["hora"] * 60 + hora["minuto"]) * 60 + hora["segundo"]
     resultado = segundos/3600
     return resultado
 
-
 def subTotalTempo(tempo, feito):
     TempoFormatado = horaParaHorasBonita(tempo)
     resultado = diffHoras(TempoFormatado, feito)
-    return {'hora':converteParaDecimalFeio(resultado),'horas bonita': resultado}
+    horaDecimal = converteParaDecimalFeio(resultado)
+    res = lessDecimalBadHour(horaDecimal,resultado)
+    saida = f'tempo: {objetoHorasParaStringHoras(resultado)} - {res}'
+    return saida #{'hora':converteParaDecimalFeio(resultado),'horas bonita': resultado}
 
 feito = ''
 
@@ -62,7 +86,7 @@ while True:
         print("marco-2")
         hora2 = criarHora()
         feito = diffHoras(hora1,hora2) 
-        print(feito)
+        print(f"tempo decorrido: {objetoHorasParaStringHoras(feito)}")
         print('tempo utilizado para marcar tempo de atividade')
     elif r == '3':
         print("SOMA-TEMPO")
@@ -71,7 +95,7 @@ while True:
         print("marco-2")
         hora2 = criarHora()
         result = sumHoras(hora1,hora2) 
-        print(result    )
+        print(result)
 
     elif r == '4':
         if feito == '':
@@ -81,7 +105,7 @@ while True:
 
         print('Marca oq foi cumprido')
         tempo = float(input("Digite o tempo reservado(em decimal feio): "))
-        print(feito)
+        print(f"tempo decorrido: {objetoHorasParaStringHoras(feito)}")
         print(subTotalTempo(tempo, feito))
 
     elif r == '5':
