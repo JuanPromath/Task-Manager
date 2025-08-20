@@ -13,11 +13,15 @@ def formatHMS(segundos):#recebe tempo em segundos, e o converte em um objeto hor
         'segundo': int(segundos%60)
     }
 
+
+
 def criarHora():
     hora = {}
-    hora["hora"] = int(input("hora: "))
-    hora["minuto"] = int(input("minuto: "))
-    hora["segundo"] = int(input("segundo: "))
+    horaString = input("Digite a hora(ex: 12:30:20): ")
+    object = horaString.split(":")
+    hora["hora"] = int(object[0])
+    hora["minuto"] = int(object[1])
+    hora["segundo"] = int(object[2])
 
     return hora
 
