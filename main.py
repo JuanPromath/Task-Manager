@@ -13,8 +13,6 @@ def formatHMS(segundos):#recebe tempo em segundos, e o converte em um objeto hor
         'segundo': int(segundos%60)
     }
 
-
-
 def criarHora():
     hora = {}
     horaString = input("Digite a hora(ex: 12:30:20): ")
@@ -39,7 +37,7 @@ def sumHoras(hora, hora1):# possivel erro em horários perto do fim do dia
 
     r = abs(segundos + segundos1)
 
-    return formatHMS(r)
+    return objetoHorasParaStringHoras(formatHMS(r))
 
 # transforma o objeto de horas em formato h:s:m em uma string hh:mm:ss
 def partHour(part):#faz zeropad de HH ou MM ou SS
@@ -82,7 +80,7 @@ while True:
     if r == '1':
         print('CONVERSOR-HORA-DECIMAL-HORA-NORMAL')
         hora = float(input("Digite a hora a ser mostrada: "))
-        print(horaParaHorasBonita(hora))
+        print(objetoHorasParaStringHoras(horaParaHorasBonita(hora)))
     elif r == '2':
         print('DIFERENCA-ENTRE-MARCOS-TEMPORAIS')
         print("marco-1")
