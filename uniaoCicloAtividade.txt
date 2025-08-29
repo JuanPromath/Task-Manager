@@ -1,0 +1,1 @@
+cod uniao;% do tempo total;tempo absoluto do total;cod ciclo;cod atividade;cod configure
