@@ -56,3 +56,4 @@ cod cadastro;cod registro;inicio;fim;data;nome atividade;tempo a fazer novo;cod 
 22;55;19:56:26;20:38:27;31/08/2025;Lingua portuguesa;00:16:15 - 0.271;45;;
 20;56;07:41:41;08:21:28;04/09/2025;logica e programação;00:00:00 - 0.0;54;;
 23;57;09:25:50;10:06:30;04/09/2025;história;00:00:00 - 0.0;46;;
+24;58;13:57:34;14:38:07;12/09/2025;quimica;00:00:00 - 0.0;48;;
