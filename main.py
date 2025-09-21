@@ -9,8 +9,8 @@ def formatHMS(segundos):#recebe tempo em segundos, e o converte em um objeto hor
 
     return {
         'hora': int(segundos/3600),
-        'minuto':(segundos/60)%60,
-        'segundo': segundos%60
+        'minuto':int((segundos/60)%60),
+        'segundo': int(segundos%60)
     }
 
 def criarHora():
@@ -72,9 +72,20 @@ def subTotalTempo(tempo, feito):
     saida = f'tempo: {objetoHorasParaStringHoras(resultado)} - {res}'
     return saida #{'hora':converteParaDecimalFeio(resultado),'horas bonita': resultado}
 
+def testeFormatHMS():
+    multiplicador100 = 10 ** 1
+    for i in range(0,25 * multiplicador100):
+        #print(f'{i/multiplicador100} - {((i/multiplicador100) * 3600)}')
+        print(horaParaHorasBonita(i/multiplicador100))
+
+teste = False
+
 feito = ''
 
-while True:
+if(teste):
+    testeFormatHMS()
+
+while True and not teste:
     print("====================TASK-MANAGER====================")
     r = input('[1] - converte horas em decimal(ex: 4.80) para horas em (h:m:s)\n[2] - calcula diferença entre marcos temporais\n[3] - Soma horas\n[4] - marca o tempo cumprido de atividade\n[5] - sair\nR: ')
     if r == '1':
