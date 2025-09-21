@@ -9,8 +9,8 @@ def formatHMS(segundos):#recebe tempo em segundos, e o converte em um objeto hor
 
     return {
         'hora': int(segundos/3600),
-        'minuto':(int(segundos/60))%60,
-        'segundo': int(segundos%60)
+        'minuto':(segundos/60)%60,
+        'segundo': segundos%60
     }
 
 def criarHora():
