@@ -11,7 +11,7 @@ if(conexao.is_connected):
     print('conexão bem sucedida')
     cursor = conexao.cursor(dictionary=True)
 
-def criar_ciclo():
+def criar_ciclo():# cria um ciclo
     ciclo = {}
     r = input("Digite o nome do ciclo: ")
     ciclo['nome'] = r
@@ -32,7 +32,7 @@ def criar_ciclo():
     cursor.execute(insert)
     conexao.commit()
 
-def criar_atividade():
+def criar_atividade():# cria uma atividade
     atividade = {}
     r = input('Digite o nome da atividade: ')
     atividade['Nome'] = r
@@ -40,7 +40,7 @@ def criar_atividade():
     cursor.execute(insert)
     conexao.commit()
 
-def listAny(table, complement=''):
+def listAny(table, complement=''):# cria uma lista em base numa consulta select
     select = f'SELECT * FROM {table} {complement};'
     print(select)
     result = cursor.execute(select)
@@ -53,7 +53,7 @@ def listAny(table, complement=''):
 
     return lista
 
-def adicionarAtividadeACiclo(ciclo):
+def adicionarAtividadeACiclo(ciclo):#relaciona um atividade com um ciclo(cadastra ela no ciclo)
     #vc pode adicionar a mesma atividade num ciclo n vezes isso é um problema
     list = listAny('atividade')
     print(imprimirMenu(list))
@@ -62,7 +62,7 @@ def adicionarAtividadeACiclo(ciclo):
     cursor.execute(insert)
     conexao.commit()
 
-def apagarAtividadeCiclo(ciclo):
+def apagarAtividadeCiclo(ciclo):#apaga uma atividade de um ciclo
     #vc pode adicionar a mesma atividade num ciclo n vezes isso é um problema
     list = listAny('ciclo_atividade', complement=f"where codigoCiclo = {ciclo['codigo']}")
     print(imprimirMenu(list))
@@ -71,7 +71,7 @@ def apagarAtividadeCiclo(ciclo):
     cursor.execute(delete)
     conexao.commit()
 
-def selectItens(itens):
+def selectItens(itens):#faz multi-seleção de itens de uma lista
     choosed = []
     choosing = True
     while choosing:
@@ -91,7 +91,7 @@ def selectItens(itens):
         elif r=='3':
             return {'choosed': choosed,'unchoosed': itens}
 
-def putNewPor(escolhido):
+def putNewPor(escolhido):#coloca novas porcentagens em mais de um item
     certo = True
     sum1 = 0
     for i in escolhido['unchoosed']:
@@ -113,7 +113,7 @@ def putNewPor(escolhido):
             return escolhido['choosed']
         showList(escolhido['choosed'])
 
-def newGp(escolhido):
+def newGp(escolhido):# coloca gp em mais de um itens
     print(imprimirMenu(escolhido['choosed']))
     r = input('digite os novos valores separados por ;: ')
     values = r.split(';')
@@ -123,7 +123,7 @@ def newGp(escolhido):
         item['gp'] = values[i]
     return escolhido['choosed']
 
-def mudarGp(ciclo):
+def mudarGp(ciclo):#mudar gp de atividade em um ciclo
     list = listAny('ciclo_atividade',complement=f'where codigoCiclo={ciclo['codigo']}')
     escolhidos = selectItens(list)
     toUpdate = newGp(escolhidos)
@@ -134,7 +134,7 @@ def mudarGp(ciclo):
 
     conexao.commit()
 
-def mudarPorcentagem(ciclo):
+def mudarPorcentagem(ciclo):#mudar porcentagens em um ciclo
     list = listAny('ciclo_atividade',complement=f'where codigoCiclo={ciclo['codigo']}')
     escolhidos = selectItens(list)
     toUpdate = putNewPor(escolhidos)
@@ -144,6 +144,26 @@ def mudarPorcentagem(ciclo):
 
     conexao.commit()
 
+
+def iniciarSessao(ciclo):
+    #checar se não tem uma sessão com status executando
+    sessoes = listAny('sessao', complement=f"where status='executando'")
+    novaSessao = {}
+    novaSessao['status'] = 'executando'
+    if len(sessoes) > 0:
+        r = input('Já existe uma sessão em execução,1=deseja criar mesmo assim em pausa ou 2=não criar[1][2]:')
+        if r == '1':
+            novaSessao['status'] = 'pausada'
+        elif r == '2':
+            return
+    
+    novaSessao['nome'] = input('Escreva o nome da sessão: ')
+    sessoes = listAny('sessao', complement=f"where status='finalizada' and codigoCiclo={ciclo['codigo']} order by desc;")
+    showList(sessoes)
+    #fazer o insert
+
+    #se tiver mandar a opção de não criar ou criar em status pausado
+    #considerar ultima sessao uma sessao finalizada do mesmo ciclo
 
 def gerenciar(ciclo):
     print(ciclo)
@@ -166,8 +186,9 @@ def gerenciar(ciclo):
         elif r=='4':
             mudarGp(ciclo)
         elif r == '5':
+            iniciarSessao(ciclo)
+        elif r == '6':
             gerenciando = False
-
 
 def imprimirMenu(list):
     res = ''
