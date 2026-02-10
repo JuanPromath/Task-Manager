@@ -12,15 +12,18 @@ def formatHMS(segundos):#recebe tempo em segundos, e o converte em um objeto hor
         'segundo': int(segundos%60)
     }
 
-def criarHora():
-    hora = {}
-    horaString = input("Digite a hora(ex: 12:30:20): ")
-    object = horaString.split(":")
-    hora["hora"] = int(object[0])
-    hora["minuto"] = int(object[1])
-    hora["segundo"] = int(object[2])
+def stringHoraToObject(horaString):
+        hora = {}
+        object = horaString.split(":")
+        hora["hora"] = int(object[0])
+        hora["minuto"] = int(object[1])
+        hora["segundo"] = int(object[2])
+        return hora
 
-    return hora
+def criarHora():
+    horaString = input("Digite a hora(ex: 12:30:20): ")
+
+    return stringHoraToObject(horaString)
 
 def diffHoras(hora, hora1):#recebe dois objetos hora formata, converte em segundos, realiza a subtração, e chama uma função para converter o resultado para objeto hora formatada
     segundos = (hora["hora"] * 60 + hora["minuto"]) * 60 + hora["segundo"]

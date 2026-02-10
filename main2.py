@@ -1,11 +1,15 @@
 
-from openpyxl import load_workbook
 import util as u
 
-arquivo = load_workbook("tudo modelado.xlsx")
-arquivoR = load_workbook("tudo modelado.xlsx",data_only=True, read_only=True,)
+import mysql.connector
+import datetime
 
-print(arquivo.sheetnames)
+conexao = mysql.connector.connect(host='localhost', database='tk', user="root", password='')
+cursor = ''
+
+if(conexao.is_connected):
+    print('conexão bem sucedida')
+    cursor = conexao.cursor(dictionary=True)
 
 def criar_ciclo():
     ciclo = {}
@@ -23,89 +27,167 @@ def criar_ciclo():
     else:
         print('digite uma entrada valida')
     print(ciclo)
-    insert(ciclo, 'Ciclo')
+    insert = f"INSERT INTO ciclo(nome, tempoTotal, tempoTotalDecimal) values('{ciclo['nome']}', '{ciclo['tempo total']}', '{ciclo['tempo total decimal']}')"
+    print(insert)
+    cursor.execute(insert)
+    conexao.commit()
 
 def criar_atividade():
     atividade = {}
     r = input('Digite o nome da atividade: ')
     atividade['Nome'] = r
-    insert(atividade, 'Atividade')
+    insert = f"INSERT INTO atividade(nome) VALUES ('{atividade['Nome']}')"
+    cursor.execute(insert)
+    conexao.commit()
 
-def table2List(tab):
-    Tab = arquivoR[tab]
-    header = Tab['1']
-    qtdLines = len(Tab['A'])
-    lista = []
-    for i in range(1, qtdLines):
-        res = {}
-        for j, columnHeader in enumerate(header):
-            valorCelula = Tab[f'{chr(ord('A') + j)}{i + 1}'].value 
-            print(Tab[f'{chr(ord('A') + j)}{i + 1}'].internal_value)
-            res[columnHeader.value] = Tab[f'{chr(ord('A') + j)}{i + 1}'].value
-        lista.append(res)
-    
+def listAny(table, complement=''):
+    select = f'SELECT * FROM {table} {complement};'
+    print(select)
+    result = cursor.execute(select)
+    lista = cursor.fetchall()
+
+    for i in lista:
+        for key in i.keys():
+            if(key == 'tempoTotal'):
+                i[key] = u.objetoHorasParaStringHoras(u.horaParaHorasBonita(i['tempoTotalDecimal']))
+
     return lista
-        
-def insert(inserted, tab):
-    archiveTab = arquivo[tab]
-    codigos = archiveTab['A']
-    line = len(codigos)
-    print(f'A{line + 1}')
-    StartColumn = ord('B')
 
-    archiveTab[f'A{line + 1}'] = line
+def adicionarAtividadeACiclo(ciclo):
+    #vc pode adicionar a mesma atividade num ciclo n vezes isso é um problema
+    list = listAny('atividade')
+    print(imprimirMenu(list))
+    r = input('teste')
+    insert = f"INSERT INTO ciclo_atividade(codigoAtividade, codigoCiclo, gp, porcentagemTempoTotal) VALUES ({list[int(r)]['codigo']}, {ciclo['codigo']}, 'na', 0)"
+    cursor.execute(insert)
+    conexao.commit()
 
-    for key in inserted.keys():
-        #print(key)
-        #print(f'{StartColumn} - {chr(StartColumn)} - {chr(StartColumn)}{line + 1} - {cicloDict[key]}')
-        archiveTab[f'{chr(StartColumn)}{line + 1}'] = inserted[key]
-        StartColumn += 1
-    for cell in codigos:
-        print(cell.value)
-    arquivo.save('tudo modelado.xlsx')
+def apagarAtividadeCiclo(ciclo):
+    #vc pode adicionar a mesma atividade num ciclo n vezes isso é um problema
+    list = listAny('ciclo_atividade', complement=f"where codigoCiclo = {ciclo['codigo']}")
+    print(imprimirMenu(list))
+    r = input('escolha qual apagar: ')
+    delete = f"DELETE FROM ciclo_atividade WHERE codigo={list[int(r)]['codigo']}"
+    cursor.execute(delete)
+    conexao.commit()
 
-def insert_cycle(cicloDict):
-    #achar a ultima linha
-    #gerar um código unico
-    cicloTab = arquivo['Ciclo']
-    codigos = cicloTab['A']
-    line = len(codigos)
-    print(f'A{line + 1}')
-    StartColumn = ord('B')
+def selectItens(itens):
+    choosed = []
+    choosing = True
+    while choosing:
+        showList(choosed)
+        r = input('[1] - adicionar item\n[2] - remover item\n[3] - terminar seleção\nR: ')
+        if r=='1':
+            print(imprimirMenu(itens))
+            r = input('R: ')
+            choosed.append(itens[int(r)])
+            del itens[int(r)]
+        elif r=='2':
+            if len(choosed) > 0:
+                print(imprimirMenu(choosed))
+                r=input('R: ')
+                itens.append(choosed[int(r)])
+                del choosed[int(r)]
+        elif r=='3':
+            return {'choosed': choosed,'unchoosed': itens}
 
-    cicloTab[f'A{line + 1}'] = line
+def putNewPor(escolhido):
+    certo = True
+    sum1 = 0
+    for i in escolhido['unchoosed']:
+        sum1 += i['porcentagemTempoTotal']
 
-    for key in cicloDict.keys():
-        #print(key)
-        #print(f'{StartColumn} - {chr(StartColumn)} - {chr(StartColumn)}{line + 1} - {cicloDict[key]}')
-        cicloTab[f'{chr(StartColumn)}{line + 1}'] = cicloDict[key]
-        StartColumn += 1
-    for cell in codigos:
-        print(cell.value)
-    arquivo.save('tudo modelado.xlsx')
+    while certo:
+        print(imprimirMenu(escolhido['choosed']))
+        r = input('digite os novos valores separados por ;: ')
+        values = r.split(';')
+        if len(values) != len(escolhido['choosed']):
+            return 'erro'
+        sum2 = 0
+        for i,item in enumerate(escolhido['choosed']):
+            item['porcentagemTempoTotal'] = float(values[i])
+            sum2 += item['porcentagemTempoTotal']
+        print(sum1 + sum2)
+        if(sum1 + sum2 <= 1.00):
+            certo = False
+            return escolhido['choosed']
+        showList(escolhido['choosed'])
+
+def newGp(escolhido):
+    print(imprimirMenu(escolhido['choosed']))
+    r = input('digite os novos valores separados por ;: ')
+    values = r.split(';')
+    if len(values) != len(escolhido['choosed']):
+        return 'erro'
+    for i,item in enumerate(escolhido['choosed']):
+        item['gp'] = values[i]
+    return escolhido['choosed']
+
+def mudarGp(ciclo):
+    list = listAny('ciclo_atividade',complement=f'where codigoCiclo={ciclo['codigo']}')
+    escolhidos = selectItens(list)
+    toUpdate = newGp(escolhidos)
+    for i in toUpdate:
+        update = f"update ciclo_atividade SET gp = '{i['gp']}' where codigo={i['codigo']}"
+        print(update)
+        cursor.execute(update)
+
+    conexao.commit()
+
+def mudarPorcentagem(ciclo):
+    list = listAny('ciclo_atividade',complement=f'where codigoCiclo={ciclo['codigo']}')
+    escolhidos = selectItens(list)
+    toUpdate = putNewPor(escolhidos)
+    for i in toUpdate:
+        update = f"update ciclo_atividade SET porcentagemTempoTotal = {i['porcentagemTempoTotal']} where codigo={i['codigo']}"
+        cursor.execute(update)
+
+    conexao.commit()
+
 
 def gerenciar(ciclo):
     print(ciclo)
     gerenciando = True
     while gerenciando:
-        showList(table2List('uniao ciclo atividade'))
-        gerenciando = False
 
-def gerenciarCiclo():
-    #listar os ciclos
-    list = table2List('Ciclo')
+        listaAtividadesCiclo = listAny('ciclo_atividade',complement=f'where codigoCiclo={ciclo['codigo']}')
+        for i in listaAtividadesCiclo:
+            i['tempo a fazer decimal'] = ciclo['tempoTotalDecimal'] * i['porcentagemTempoTotal']
+            i['tempo a fazer'] = u.objetoHorasParaStringHoras(u.horaParaHorasBonita(i['tempo a fazer decimal']))
+        showList(listaAtividadesCiclo)
+        r = input('[1] - adicionar atividade\n[2] - remover atividade\n[3] - mudar porcentagens\n[4] - mudar gp\n[5] - voltar menu\nwhat u wanna du nigaz: ')
+
+        if r == '1':
+            adicionarAtividadeACiclo(ciclo)
+        elif r == '2':
+            apagarAtividadeCiclo(ciclo)
+        elif r == '3':
+            mudarPorcentagem(ciclo)
+        elif r=='4':
+            mudarGp(ciclo)
+        elif r == '5':
+            gerenciando = False
+
+
+def imprimirMenu(list):
+    res = ''
     for i,line in enumerate(list):
-        res = f'[{i}] - '
+        res += f'[{i}] - '
         for pos, key in enumerate(line):
             if pos == len(line.keys()) - 1:
                 res += f'{key}: {line[key]}'
             else:
                 res += f'{key}: {line[key]} - '
-
-        print(res)
+        res += '\n'
+    return res
+def gerenciarCiclo():
+    #listar os ciclos
+    list = listAny('Ciclo')
+    res = imprimirMenu(list)
+    print(res)
     #input pra escolher ciclo
     r = input('R: ')
-    gerenciar(list[int(r)]['tempo total'])
+    gerenciar(list[int(r)])
     #sistema menu de ciclo
 
 def showList(list):
@@ -127,10 +209,13 @@ while True:
     elif r == '1':
         criar_atividade()
     elif r == '2':
-        showList(table2List('Ciclo'))
+        showList(listAny('ciclo'))
     elif r == '3':
         gerenciarCiclo()
     elif r == "4":
         print('fechado')
-        arquivo.close()
+        conexao.close()
+        cursor.close()
         break
+conexao.close()
+cursor.close()
