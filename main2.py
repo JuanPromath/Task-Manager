@@ -40,8 +40,8 @@ def criar_atividade():# cria uma atividade
     cursor.execute(insert)
     conexao.commit()
 
-def listAny(table, complement=''):# cria uma lista em base numa consulta select
-    select = f'SELECT * FROM {table} {complement};'
+def listAny(table, complement='', fields='*'):# cria uma lista em base numa consulta select
+    select = f'SELECT {fields} FROM {table} {complement};'
     print(select)
     result = cursor.execute(select)
     lista = cursor.fetchall()
@@ -64,7 +64,8 @@ def adicionarAtividadeACiclo(ciclo):#relaciona um atividade com um ciclo(cadastr
 
 def apagarAtividadeCiclo(ciclo):#apaga uma atividade de um ciclo
     #vc pode adicionar a mesma atividade num ciclo n vezes isso é um problema
-    list = listAny('ciclo_atividade', complement=f"where codigoCiclo = {ciclo['codigo']}")
+    list = listAny('ciclo_atividade', complement=f"INNER JOIN atividade on codigoAtividade=atividade.codigo where codigoCiclo = {ciclo['codigo']}", 
+    fields='ciclo_atividade.codigo, codigoAtividade, atividade.nome, gp, porcentagemTempoTotal')
     print(imprimirMenu(list))
     r = input('escolha qual apagar: ')
     delete = f"DELETE FROM ciclo_atividade WHERE codigo={list[int(r)]['codigo']}"
@@ -124,7 +125,7 @@ def newGp(escolhido):# coloca gp em mais de um itens
     return escolhido['choosed']
 
 def mudarGp(ciclo):#mudar gp de atividade em um ciclo
-    list = listAny('ciclo_atividade',complement=f'where codigoCiclo={ciclo['codigo']}')
+    list = listAny('ciclo_atividade',complement=f'INNER JOIN atividade on codigoAtividade=atividade.codigo where codigoCiclo={ciclo['codigo']}',fields='ciclo_atividade.codigo, codigoAtividade, atividade.nome, gp, porcentagemTempoTotal')
     escolhidos = selectItens(list)
     toUpdate = newGp(escolhidos)
     for i in toUpdate:
@@ -135,7 +136,7 @@ def mudarGp(ciclo):#mudar gp de atividade em um ciclo
     conexao.commit()
 
 def mudarPorcentagem(ciclo):#mudar porcentagens em um ciclo
-    list = listAny('ciclo_atividade',complement=f'where codigoCiclo={ciclo['codigo']}')
+    list = listAny('ciclo_atividade',complement=f'INNER JOIN atividade on codigoAtividade=atividade.codigo where codigoCiclo={ciclo['codigo']}',fields='ciclo_atividade.codigo, codigoAtividade, atividade.nome, gp, porcentagemTempoTotal')
     escolhidos = selectItens(list)
     toUpdate = putNewPor(escolhidos)
     for i in toUpdate:
@@ -145,7 +146,7 @@ def mudarPorcentagem(ciclo):#mudar porcentagens em um ciclo
     conexao.commit()
 
 
-def iniciarSessao(ciclo):
+def iniciarSessao(ciclo, listAtividade):
     #checar se não tem uma sessão com status executando
     sessoes = listAny('sessao', complement=f"where status='executando'")
     novaSessao = {}
@@ -158,9 +159,18 @@ def iniciarSessao(ciclo):
             return
     
     novaSessao['nome'] = input('Escreva o nome da sessão: ')
-    sessoes = listAny('sessao', complement=f"where status='finalizada' and codigoCiclo={ciclo['codigo']} order by desc;")
+    sessoes = listAny('sessao', complement=f"where status='finalizada' and codigoCiclo={ciclo['codigo']} order by fimData desc")
     showList(sessoes)
     #fazer o insert
+    insert = f"INSERT INTO sessao(codigoCiclo, nome, nome_ciclo, status, inicioData, tempoTotal, tempoTotalDecimal, filled) VALUES ({ciclo['codigo']}, '{novaSessao['nome']}', '{ciclo['nome']}', '{novaSessao['status']}','{datetime.date.today()}', '{ciclo['tempoTotal']}', {ciclo['tempoTotalDecimal']}, 'unready')"
+    print(insert)
+    cursor.execute(insert)
+    conexao.commit()
+    sessao = listAny('sessao',complement="where filled = 'unready'")[0]
+    insertAtividades = 'INSERT INTO sessao_atividade(nomeAtividade, codigoAtividade, codigoSessao, tempoAFazer, tempoAFazerDecimal, porcentagemTempoTotal) VALUES'
+    for i in listAtividade:
+        print(f"'({i['nome']}', {i['codigoAtividade']}, {sessao['codigo']}")
+
 
     #se tiver mandar a opção de não criar ou criar em status pausado
     #considerar ultima sessao uma sessao finalizada do mesmo ciclo
@@ -170,7 +180,7 @@ def gerenciar(ciclo):
     gerenciando = True
     while gerenciando:
 
-        listaAtividadesCiclo = listAny('ciclo_atividade',complement=f'where codigoCiclo={ciclo['codigo']}')
+        listaAtividadesCiclo = listAny('ciclo_atividade',complement=f'INNER JOIN atividade on codigoAtividade=atividade.codigo where codigoCiclo={ciclo['codigo']}',fields='ciclo_atividade.codigo, codigoAtividade, atividade.nome, gp, porcentagemTempoTotal')
         for i in listaAtividadesCiclo:
             i['tempo a fazer decimal'] = ciclo['tempoTotalDecimal'] * i['porcentagemTempoTotal']
             i['tempo a fazer'] = u.objetoHorasParaStringHoras(u.horaParaHorasBonita(i['tempo a fazer decimal']))
@@ -186,7 +196,7 @@ def gerenciar(ciclo):
         elif r=='4':
             mudarGp(ciclo)
         elif r == '5':
-            iniciarSessao(ciclo)
+            iniciarSessao(ciclo, listaAtividadesCiclo)
         elif r == '6':
             gerenciando = False
 
