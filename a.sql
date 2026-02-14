@@ -87,6 +87,7 @@ ALTER TABLE sessao_Atividade add column tempoAFazerdecimal real;
 alter table sessao_Atividade add column porcentagemTempoTotal real;
 alter table sessao_Atividade add column ultimoRegistro integer;
 ALTER TABLE sessao_Atividade add constraint last_register foreign key (ultimoRegistro) REFERENCES registro(codigo);
+ALTER TABLE sessao_Atividade add column gp text;
 
 SELECT * FROM atividade;
 select * from ciclo_atividade;
@@ -108,5 +109,16 @@ SELECT * FROM sessao where status='finalizada' and codigoCiclo=4 order by fimDat
 SELECT ciclo_atividade.codigo, codigoAtividade, atividade.nome, gp, porcentagemTempoTotal FROM ciclo_atividade INNER JOIN atividade on codigoAtividade=atividade.codigo where codigoCiclo=4;
 select * from sessao_atividade;
 select * from sessao;
+select * from registro;
+
+UPDATE sessao_atividade set tempoAFazer = 02:00:30, tempoAFazerdecimal = 2.0083333333333333 where codigo=5;
+UPDATE sessao_atividade set ultimoRegistro = null;
+update registro set codigoSessaoAtividade = null,  codigoRA = null;
 
 DELETE FROM sessao;
+DELETE FROM sessao_atividade;
+DELETE FROM registro;
+
+SELECT codigo FROM registro where codigoSessaoAtividade = 15 order by data desc, inicio desc limit 1;
+
+select * from registro where codigoSessaoAtividade = 13 order by data desc, inicio desc;

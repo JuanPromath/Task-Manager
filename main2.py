@@ -167,9 +167,17 @@ def iniciarSessao(ciclo, listAtividade):
     cursor.execute(insert)
     conexao.commit()
     sessao = listAny('sessao',complement="where filled = 'unready'")[0]
-    insertAtividades = 'INSERT INTO sessao_atividade(nomeAtividade, codigoAtividade, codigoSessao, tempoAFazer, tempoAFazerDecimal, porcentagemTempoTotal) VALUES'
-    for i in listAtividade:
-        print(f"'({i['nome']}', {i['codigoAtividade']}, {sessao['codigo']}")
+    insertAtividades = 'INSERT INTO sessao_atividade(nomeAtividade, codigoAtividade, codigoSessao, tempoAFazer, tempoAFazerDecimal, porcentagemTempoTotal, gp) VALUES '
+    for pos, i in enumerate(listAtividade):
+        insertAtividades += f"('{i['nome']}', {i['codigoAtividade']}, {sessao['codigo']}, '{i['tempo a fazer']}', {i['tempo a fazer decimal']}, {i['porcentagemTempoTotal']}, '{i['gp']}')"
+        if pos < len(listAtividade) - 1:
+            insertAtividades += ',\n'
+        else:
+            insertAtividades += ';'
+    update = f"UPDATE sessao SET filled = 'ready' where codigo={sessao['codigo']}"
+    cursor.execute(insertAtividades)
+    cursor.execute(update)
+    conexao.commit()
 
 
     #se tiver mandar a opção de não criar ou criar em status pausado
@@ -231,9 +239,52 @@ def showList(list):
                 res += f'{key}: {line[key]} - '
         print(res)
 
+def registrar(atividade):
+        registro = {}
+        print(atividade['tempoAFazerdecimal'])
+        atividade['tempoAFazer'] = u.horaParaHorasBonita(atividade['tempoAFazerdecimal'])
+        print(atividade)
+        print("marco-1")
+        registro['inicio'] = u.criarHora()
+        print("marco-2")
+        registro['fim'] = u.criarHora()
+        registro['tempoAFazer'] = u.diffHoras(u.diffHoras(registro['inicio'], registro['fim']), atividade['tempoAFazer'])
+        registro['tempoAFazerD'] = u.converteParaDecimalFeio(registro['tempoAFazer'])
+        registro['tempoAFazer'] = u.objetoHorasParaStringHoras(registro['tempoAFazer'])
+        registro['inicio'] = u.objetoHorasParaStringHoras(registro['inicio'])
+        registro['fim'] = u.objetoHorasParaStringHoras(registro['fim'])
+        print(registro)
+        if atividade['ultimoRegistro'] is not None:
+            insert = f"INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, tempoAFazer, tempoAFazerD, codigoRA) VALUES ({atividade['codigo']}, '{registro['inicio']}','{registro['fim']}','{datetime.date.today()}', '{atividade['nomeAtividade']}', '{registro['tempoAFazer']}', {registro['tempoAFazerD']}, {atividade['ultimoRegistro']})"
+        else:
+            insert = f"INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, tempoAFazer, tempoAFazerD) VALUES ({atividade['codigo']}, '{registro['inicio']}','{registro['fim']}','{datetime.date.today()}', '{atividade['nomeAtividade']}', '{registro['tempoAFazer']}', {registro['tempoAFazerD']})"
+
+        update = f"UPDATE sessao_atividade set tempoAFazer = '{registro['tempoAFazer']}', tempoAFazerdecimal = {registro['tempoAFazerD']} where codigo={atividade['codigo']}"
+        cursor.execute(insert)
+        cursor.execute(update)
+        conexao.commit()
+        ultimoRegistro = listAny('registro', fields='codigo', complement=f"where codigoSessaoAtividade = {atividade['codigo']} order by data desc, inicio desc limit 1")[0]
+        update = f"UPDATE sessao_atividade set ultimoRegistro = '{ultimoRegistro['codigo']}' where codigo={atividade['codigo']}"
+        cursor.execute(update)
+        conexao.commit()
+
+        #tempo a fazer se ultimo registro for none deve ser o tempo total da atividade
+        #verificar se a atividade tá completa
+
+def gerenciarSessao():
+    sessoes = listAny('sessao',fields='codigo, codigoCiclo, nome, nome_ciclo, status, inicioData, fimData, tempoTotalDecimal, tempoTotal')
+    print(imprimirMenu(sessoes))
+    r = input('R: ')
+    sessaoEscolhida = sessoes[int(r)]
+    atividadesSessao = listAny('sessao_atividade',complement=f"where codigoSessao = {sessaoEscolhida['codigo']}")
+    print('escolha uma atividade para realizar registro')
+    print(imprimirMenu(atividadesSessao))
+    r = input('R: ')
+    registrar(atividadesSessao[int(r)])
+
 while True:
     
-    r = input("[0] - criar ciclo\n[1] - Criar atividade\n[2] - listar ciclos\n[3] - gerenciar ciclo\n[4] - encerrar aplicação\nR: ")
+    r = input("[0] - criar ciclo\n[1] - Criar atividade\n[2] - listar ciclos\n[3] - gerenciar ciclo\n[4] - olhar sessões\n[5] - encerrar aplicação\nR: ")
 
     if r == "0":
         criar_ciclo()
@@ -243,7 +294,9 @@ while True:
         showList(listAny('ciclo'))
     elif r == '3':
         gerenciarCiclo()
-    elif r == "4":
+    elif r == '4':
+        gerenciarSessao()
+    elif r == "5":
         print('fechado')
         conexao.close()
         cursor.close()
