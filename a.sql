@@ -113,15 +113,19 @@ update registro set codigoSessaoAtividade = null,  codigoRA = null;
 DELETE FROM sessao;
 DELETE FROM sessao_atividade;
 DELETE FROM registro;
-
+DELETE FROM ciclo_atividade;
+DELETE FROM ciclo;
+DELETE from atividade where codigo IN (3, 4, 5, 6, 7);
 SELECT codigo FROM registro where codigoSessaoAtividade = 15 order by data desc, inicio desc limit 1;
 
 select * from registro where codigoSessaoAtividade = 13 order by data desc, inicio desc;
 
 SELECT * FROM atividade;
-select * from ciclo_atividade;
+select sum(porcentagemTempoTotal) from ciclo_atividade;
 SELECT * FROM ciclo;
 
 SELECT * FROM sessao;
 SELECT * FROM sessao_atividade;
 SELECT * FROM registro;
+
+update sessao set status = 'pausada' where codigo=15;
