@@ -4,7 +4,7 @@ import util as u
 import mysql.connector
 import datetime
 
-conexao = mysql.connector.connect(host='localhost', database='tk', user="root", password='')
+conexao = mysql.connector.connect(host='localhost', database='tkd', user="root", password='')
 cursor = ''
 
 if(conexao.is_connected):
