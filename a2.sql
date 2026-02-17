@@ -1,5 +1,5 @@
-CREATE database TK;
-USE TK;
+CREATE database TKD;
+USE TKD;
 
 CREATE TABLE ciclo(
 	codigo INTEGER primary key auto_increment,
@@ -88,6 +88,11 @@ alter table sessao_Atividade add column porcentagemTempoTotal real;
 alter table sessao_Atividade add column ultimoRegistro integer;
 ALTER TABLE sessao_Atividade add constraint last_register foreign key (ultimoRegistro) REFERENCES registro(codigo);
 ALTER TABLE sessao_Atividade add column gp text;
+
+SELECT * FROM atividade;
+select * from ciclo_atividade;
+
+SELECT * FROM ciclo;
 
 SELECT * FROM ciclo_atividade where codigoCiclo=4;
 
