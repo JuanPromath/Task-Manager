@@ -4,7 +4,7 @@ import util as u
 import mysql.connector
 import datetime
 
-debug = False
+debug = True
 conexao = ''
 if debug:
     conexao = mysql.connector.connect(host='localhost', database='tk', user="root", password='')
