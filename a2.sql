@@ -130,3 +130,5 @@ SELECT * FROM ciclo;
 SELECT * FROM sessao;
 SELECT * FROM sessao_atividade;
 SELECT * FROM registro;
+
+SELECT * FROM sessao_atividade where codigoSessao = 1 and tempoAFazerdecimal > 0;

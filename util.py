@@ -1,4 +1,5 @@
 import math
+from decimal import Decimal
 
 def horaParaHorasBonita(horasFeia):
     segundos = horasFeia * 3600
@@ -53,11 +54,16 @@ def objetoHorasParaStringHoras(horas):
     return res
 
 def lessDecimalBadHour(hora,target):#ver se dar para corte bits desnecessários no float do python. UwU
+    numero = str(hora)
+    if(len(numero.split('.')[1]) < 3):
+        pass
+        #return hora
     casas = 1
     while horaParaHorasBonita(math.ceil(hora * (10 * 10**(casas-1))) / (10 * 10**(casas-1))) != target:
         casas += 1
+        #print(hora * (10 * 10**(casas-1)))
         rounded = math.ceil(hora * (10 * 10**(casas-1))) / (10 * 10**(casas-1))
-        print(f"{(rounded)} - {objetoHorasParaStringHoras(horaParaHorasBonita(rounded))}")
+        #print(f"{(rounded)} - {objetoHorasParaStringHoras(horaParaHorasBonita(rounded))}")
     else:
         return math.ceil(hora * (10 * 10**(casas-1))) / (10 * 10**(casas-1))
 
