@@ -4,7 +4,7 @@ import util as u
 import mysql.connector
 import datetime
 
-debug = True
+debug = False
 conexao = ''
 if debug:
     conexao = mysql.connector.connect(host='localhost', database='tkd', user="root", password='')
@@ -250,7 +250,7 @@ def registrar(atividade):
             return
         registro = {}
         print(atividade['tempoAFazerdecimal'])
-        atividade['tempoAFazer'] = u.horaParaHorasBonita(atividade['tempoAFazerdecimal'])
+        atividade['tempoAFazer'] = u.stringHoraToObject(atividade['tempoAFazer'])
         print(atividade)
         print("marco-1")
         registro['inicio'] = u.criarHora()
@@ -288,7 +288,11 @@ def registrar(atividade):
         update = f"UPDATE sessao_atividade set ultimoRegistro = '{ultimoRegistro['codigo']}' where codigo={atividade['codigo']}"
         cursor.execute(update)
         conexao.commit()
-
+        if len(listAny('sessao_atividade',complement=f"where codigoSessao = {atividade['codigoSessao']} and tempoAFazerdecimal > 0")) <= 0:
+            print('sessão terminada')
+            update = f"UPDATE sessao set status = 'finalizada', fimData = '{datetime.date.today()}' where codigo={atividade['codigoSessao']}"
+            cursor.execute(update)
+            conexao.commit()
         #tempo a fazer se ultimo registro for none deve ser o tempo total da atividade
         #verificar se a atividade tá completa
 
@@ -300,7 +304,8 @@ def gerenciarSessao():
     atividadesSessao = listAny('sessao_atividade',complement=f"where codigoSessao = {sessaoEscolhida['codigo']}")
     for i in atividadesSessao:
         if i['ultimoRegistro'] is None:
-            i['tempoAfazerDecimal'] = sessaoEscolhida['tempoTotalDecimal'] * i['porcentagemTempoTotal']
+            i['tempoAFazerdecimal'] = sessaoEscolhida['tempoTotalDecimal'] * i['porcentagemTempoTotal']
+        i['tempoAFazer'] = u.objetoHorasParaStringHoras(u.horaParaHorasBonita(i['tempoAFazerdecimal']))
     print('escolha uma atividade para realizar registro')
     print(imprimirMenu(atividadesSessao))
     r = input('R: ')
