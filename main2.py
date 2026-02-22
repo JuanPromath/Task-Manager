@@ -219,10 +219,9 @@ def imprimirMenu(list):
         res += f'[{i}] - '
         for pos, key in enumerate(line):
             if pos == len(line.keys()) - 1:
-                res += f'{key}: {line[key]}'
+                res += f'{key}: {line[key]}\n'
             else:
                 res += f'{key}: {line[key]} - '
-        res += '\n'
     return res
 def gerenciarCiclo():
     #listar os ciclos
@@ -245,22 +244,26 @@ def showList(list):
         print(res)
 
 def registrar(atividade):
-        if atividade['tempoAFazerdecimal'] <= 0:
-            print('atividade terminada')
-            return
-        registro = {}
-        print(atividade['tempoAFazerdecimal'])
-        atividade['tempoAFazer'] = u.stringHoraToObject(atividade['tempoAFazer'])
-        print(atividade)
+    if atividade['tempoAFazerdecimal'] <= 0:#verifica se a atividade esta cumprida e sai para o menu anterior caso +
+        print('atividade terminada')
+        return
+    
+    registro = {}#criar um dicionário para armazenar as informações do registro
+    print(atividade['tempoAFazerdecimal'])
+    atividade['tempoAFazer'] = u.stringHoraToObject(atividade['tempoAFazer'])
+    print(atividade)
+    #pega os marcos temporais
+    naoPronto = True
+    while naoPronto:
         print("marco-1")
         registro['inicio'] = u.criarHora()
         print("marco-2")
         registro['fim'] = u.criarHora()
-
+        #calcula o tempo decorrido entre os dois marcos
         tempoDecorrido = u.diffHoras(registro['inicio'], registro['fim'])
         res = f'{atividade['nomeAtividade']} - {u.lessDecimalBadHour(atividade['tempoAFazerdecimal'], atividade['tempoAFazer'])}\n'
         ultrapassou = ''
-        if u.converteParaDecimalFeio(tempoDecorrido) >  atividade['tempoAFazerdecimal']:
+        if u.converteParaDecimalFeio(tempoDecorrido) >  atividade['tempoAFazerdecimal']:#verifica se foi feito tempo a mais do que se devia
             registro['tempoAFazer'] = '00:00:00'
             registro['tempoAFazerD'] = 0.0
             tempoUltrapassado = u.diffHoras(tempoDecorrido, atividade['tempoAFazer'])
@@ -275,41 +278,56 @@ def registrar(atividade):
         print(registro)
         res += f'{registro['inicio']}\n{registro["fim"]}\ntempo decorrido: {u.objetoHorasParaStringHoras(tempoDecorrido)}\ntempo: {registro["tempoAFazer"]} - {u.lessDecimalBadHour(registro['tempoAFazerD'],u.stringHoraToObject(registro["tempoAFazer"]))}{ultrapassou}'
         print(res)
-        if atividade['ultimoRegistro'] is not None:
-            insert = f"INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, tempoAFazer, tempoAFazerD, codigoRA) VALUES ({atividade['codigo']}, '{registro['inicio']}','{registro['fim']}','{datetime.date.today()}', '{atividade['nomeAtividade']}', '{registro['tempoAFazer']}', {registro['tempoAFazerD']}, {atividade['ultimoRegistro']})"
-        else:
-            insert = f"INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, tempoAFazer, tempoAFazerD) VALUES ({atividade['codigo']}, '{registro['inicio']}','{registro['fim']}','{datetime.date.today()}', '{atividade['nomeAtividade']}', '{registro['tempoAFazer']}', {registro['tempoAFazerD']})"
+        print('[b] - back')
+        r = input('confirmar novo registro[s][n]: ')
+        if r == 'b':
+            return
+        if r == 's':
+            naoPronto = False
+    # inserção no banco
+    if atividade['ultimoRegistro'] is not None:
+        insert = f"INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, tempoAFazer, tempoAFazerD, codigoRA) VALUES ({atividade['codigo']}, '{registro['inicio']}','{registro['fim']}','{datetime.date.today()}', '{atividade['nomeAtividade']}', '{registro['tempoAFazer']}', {registro['tempoAFazerD']}, {atividade['ultimoRegistro']})"
+    else:
+        insert = f"INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, tempoAFazer, tempoAFazerD) VALUES ({atividade['codigo']}, '{registro['inicio']}','{registro['fim']}','{datetime.date.today()}', '{atividade['nomeAtividade']}', '{registro['tempoAFazer']}', {registro['tempoAFazerD']})"
 
-        update = f"UPDATE sessao_atividade set tempoAFazer = '{registro['tempoAFazer']}', tempoAFazerdecimal = {registro['tempoAFazerD']} where codigo={atividade['codigo']}"
-        cursor.execute(insert)
+    update = f"UPDATE sessao_atividade set tempoAFazer = '{registro['tempoAFazer']}', tempoAFazerdecimal = {registro['tempoAFazerD']} where codigo={atividade['codigo']}"
+    cursor.execute(insert)
+    cursor.execute(update)
+    conexao.commit()
+    ultimoRegistro = listAny('registro', fields='codigo', complement=f"where codigoSessaoAtividade = {atividade['codigo']} order by data desc, inicio desc limit 1")[0]
+    update = f"UPDATE sessao_atividade set ultimoRegistro = '{ultimoRegistro['codigo']}' where codigo={atividade['codigo']}"
+    cursor.execute(update)
+    conexao.commit()
+    if len(listAny('sessao_atividade',complement=f"where codigoSessao = {atividade['codigoSessao']} and tempoAFazerdecimal > 0")) <= 0:# verifica se a sessão finalizou
+        print('sessão terminada')
+        update = f"UPDATE sessao set status = 'finalizada', fimData = '{datetime.date.today()}' where codigo={atividade['codigoSessao']}"
         cursor.execute(update)
         conexao.commit()
-        ultimoRegistro = listAny('registro', fields='codigo', complement=f"where codigoSessaoAtividade = {atividade['codigo']} order by data desc, inicio desc limit 1")[0]
-        update = f"UPDATE sessao_atividade set ultimoRegistro = '{ultimoRegistro['codigo']}' where codigo={atividade['codigo']}"
-        cursor.execute(update)
-        conexao.commit()
-        if len(listAny('sessao_atividade',complement=f"where codigoSessao = {atividade['codigoSessao']} and tempoAFazerdecimal > 0")) <= 0:
-            print('sessão terminada')
-            update = f"UPDATE sessao set status = 'finalizada', fimData = '{datetime.date.today()}' where codigo={atividade['codigoSessao']}"
-            cursor.execute(update)
-            conexao.commit()
         #tempo a fazer se ultimo registro for none deve ser o tempo total da atividade
         #verificar se a atividade tá completa
 
 def gerenciarSessao():
-    sessoes = listAny('sessao',fields='codigo, codigoCiclo, nome, nome_ciclo, status, inicioData, fimData, tempoTotalDecimal, tempoTotal')
-    print(imprimirMenu(sessoes))
-    r = input('R: ')
-    sessaoEscolhida = sessoes[int(r)]
-    atividadesSessao = listAny('sessao_atividade',complement=f"where codigoSessao = {sessaoEscolhida['codigo']}")
-    for i in atividadesSessao:
-        if i['ultimoRegistro'] is None:
-            i['tempoAFazerdecimal'] = sessaoEscolhida['tempoTotalDecimal'] * i['porcentagemTempoTotal']
-        i['tempoAFazer'] = u.objetoHorasParaStringHoras(u.horaParaHorasBonita(i['tempoAFazerdecimal']))
-    print('escolha uma atividade para realizar registro')
-    print(imprimirMenu(atividadesSessao))
-    r = input('R: ')
-    registrar(atividadesSessao[int(r)])
+    still = True
+    while still:
+        sessoes = listAny('sessao',fields='codigo, codigoCiclo, nome, nome_ciclo, status, inicioData, fimData, tempoTotalDecimal, tempoTotal')
+        print(imprimirMenu(sessoes))
+        print('[b] - back')
+        r = input('R: ')
+        
+        if(r == 'b'):
+            return
+        sessaoEscolhida = sessoes[int(r)]
+        atividadesSessao = listAny('sessao_atividade',complement=f"where codigoSessao = {sessaoEscolhida['codigo']}")
+        for i in atividadesSessao:
+            if i['ultimoRegistro'] is None:
+                i['tempoAFazerdecimal'] = sessaoEscolhida['tempoTotalDecimal'] * i['porcentagemTempoTotal']
+            i['tempoAFazer'] = u.objetoHorasParaStringHoras(u.horaParaHorasBonita(i['tempoAFazerdecimal']))
+        print('escolha uma atividade para realizar registro')
+        print(imprimirMenu(atividadesSessao))
+        print('[b] - back')
+        r = input('R: ')
+        if(r != 'b'):
+            registrar(atividadesSessao[int(r)])
 
 while True:
     
