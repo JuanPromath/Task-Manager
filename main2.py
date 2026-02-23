@@ -317,6 +317,9 @@ def gerenciarSessao():
         if(r == 'b'):
             return
         sessaoEscolhida = sessoes[int(r)]
+        if sessaoEscolhida['status'] == 'finalizada':
+            print('essa sessão já está terminada')
+            continue
         atividadesSessao = listAny('sessao_atividade',complement=f"where codigoSessao = {sessaoEscolhida['codigo']}")
         for i in atividadesSessao:
             if i['ultimoRegistro'] is None:

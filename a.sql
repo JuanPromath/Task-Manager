@@ -106,7 +106,6 @@ select * from sessao_atividade;
 select * from sessao;
 select * from registro;
 
-UPDATE sessao_atividade set tempoAFazer = 02:00:30, tempoAFazerdecimal = 2.0083333333333333 where codigo=5;
 UPDATE sessao_atividade set ultimoRegistro = null;
 update registro set codigoSessaoAtividade = null,  codigoRA = null;
 
