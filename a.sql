@@ -127,4 +127,11 @@ SELECT * FROM sessao;
 SELECT * FROM sessao_atividade;
 SELECT * FROM registro;
 
+SELECT sum(tempoAFazer), sum(tempoAFazerdecimal) FROM sessao_atividade;
+
 update sessao set status = 'pausada' where codigo=15;
+
+UPDATE sessao_atividade set tempoAFazerdecimal=0, tempoAFazer='00:00:00' where codigo= 24;
+
+INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, tempoAFazer, tempoAFazerD) VALUES
+(24, '16:33:09', '17:03:49', '2026-02-19', 'violão', '00:00:00', 0.0)
