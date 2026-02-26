@@ -109,8 +109,8 @@ select * from registro;
 UPDATE sessao_atividade set ultimoRegistro = null;
 update registro set codigoSessaoAtividade = null,  codigoRA = null;
 
-DELETE FROM sessao;
-DELETE FROM sessao_atividade;
+DELETE FROM sessao where codigo=19;
+DELETE FROM sessao_atividade where codigoSessao=19;
 DELETE FROM registro;
 DELETE FROM ciclo_atividade;
 DELETE FROM ciclo;
@@ -128,10 +128,12 @@ SELECT * FROM sessao_atividade;
 SELECT * FROM registro;
 
 SELECT sum(tempoAFazer), sum(tempoAFazerdecimal) FROM sessao_atividade;
-
+SELECT * FROM sessao where status='finalizada' and codigoCiclo=5 order by fimData desc limit 0;
 update sessao set status = 'pausada' where codigo=15;
 
 UPDATE sessao_atividade set tempoAFazerdecimal=0, tempoAFazer='00:00:00' where codigo= 24;
 
 INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, tempoAFazer, tempoAFazerD) VALUES
-(24, '16:33:09', '17:03:49', '2026-02-19', 'violão', '00:00:00', 0.0)
+(24, '16:33:09', '17:03:49', '2026-02-19', 'violão', '00:00:00', 0.0);
+SELECT * FROM sessao_atividade;
+SELECT count(*), codigo from sessao_atividade where codigoSessao in (16,20) group by codigoAtividade having count(*) > 1;

@@ -164,10 +164,14 @@ def iniciarSessao(ciclo, listAtividade):
             return
     
     novaSessao['nome'] = input('Escreva o nome da sessão: ')
-    sessoes = listAny('sessao', complement=f"where status='finalizada' and codigoCiclo={ciclo['codigo']} order by fimData desc")
+    sessoes = listAny('sessao', complement=f"where status='finalizada' and codigoCiclo={ciclo['codigo']} order by fimData desc limit 1")
     showList(sessoes)
+    insert = ''
+    if len(sessoes) <= 0:
     #fazer o insert
-    insert = f"INSERT INTO sessao(codigoCiclo, nome, nome_ciclo, status, inicioData, tempoTotal, tempoTotalDecimal, filled) VALUES ({ciclo['codigo']}, '{novaSessao['nome']}', '{ciclo['nome']}', '{novaSessao['status']}','{datetime.date.today()}', '{ciclo['tempoTotal']}', {ciclo['tempoTotalDecimal']}, 'unready')"
+        insert = f"INSERT INTO sessao(codigoCiclo, nome, nome_ciclo, status, inicioData, tempoTotal, tempoTotalDecimal, filled) VALUES ({ciclo['codigo']}, '{novaSessao['nome']}', '{ciclo['nome']}', '{novaSessao['status']}','{datetime.date.today()}', '{ciclo['tempoTotal']}', {ciclo['tempoTotalDecimal']}, 'unready')"
+    else:
+        insert = f"INSERT INTO sessao(codigoCiclo, nome, nome_ciclo, status, inicioData, tempoTotal, tempoTotalDecimal, filled, ultimaSessao) VALUES ({ciclo['codigo']}, '{novaSessao['nome']}', '{ciclo['nome']}', '{novaSessao['status']}','{datetime.date.today()}', '{ciclo['tempoTotal']}', {ciclo['tempoTotalDecimal']}, 'unready', {sessoes[0]['codigo']})"
     print(insert)
     cursor.execute(insert)
     conexao.commit()
@@ -183,10 +187,15 @@ def iniciarSessao(ciclo, listAtividade):
     cursor.execute(insertAtividades)
     cursor.execute(update)
     conexao.commit()
-
-
+    
+    #fazer o registro representando o andiatamento só fazer isso se tiver sessao anterior
+    registroAndiantado(sessao)
     #se tiver mandar a opção de não criar ou criar em status pausado
     #considerar ultima sessao uma sessao finalizada do mesmo ciclo
+
+def registroAndiantado(sessao):
+    #encontrar atividades que estão em ambas sessoes, verificar os ultimos registros de cada atividade, e caso tenha ultrapassado o tempo a fazer fazer um registro novo daquele dia
+    pass
 
 def gerenciar(ciclo):
     print(ciclo)
