@@ -109,8 +109,8 @@ select * from registro;
 UPDATE sessao_atividade set ultimoRegistro = null;
 update registro set codigoSessaoAtividade = null,  codigoRA = null;
 
-DELETE FROM sessao where codigo=19;
-DELETE FROM sessao_atividade where codigoSessao=19;
+DELETE FROM sessao where codigo=20;
+DELETE FROM sessao_atividade where codigoSessao=20;
 DELETE FROM registro;
 DELETE FROM ciclo_atividade;
 DELETE FROM ciclo;
@@ -137,3 +137,6 @@ INSERT INTO registro(codigoSessaoAtividade, inicio, fim, data, nomeAtividade, te
 (24, '16:33:09', '17:03:49', '2026-02-19', 'violão', '00:00:00', 0.0);
 SELECT * FROM sessao_atividade;
 SELECT count(*), codigo from sessao_atividade where codigoSessao in (16,20) group by codigoAtividade having count(*) > 1;
+
+SELECT * FROM sessao_atividade inner join registro on registro.codigo = ultimoRegistro where codigoSessao = 16 and codigoAtividade=8;
+SELECT * FROM sessao_atividade inner join registro on registro.codigo = ultimoRegistro where codigoSessao = 16 and codigoAtividade=8;

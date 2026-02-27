@@ -195,7 +195,21 @@ def iniciarSessao(ciclo, listAtividade):
 
 def registroAndiantado(sessao):
     #encontrar atividades que estão em ambas sessoes, verificar os ultimos registros de cada atividade, e caso tenha ultrapassado o tempo a fazer fazer um registro novo daquele dia
-    pass
+    listaAtividades = listAny('sessao_atividade', complement=f'WHERE codigoSessao={sessao['codigo']}')
+    #showList(listaAtividades)
+    for atividade in listaAtividades:
+        atividadeSessaoAN = listAny('sessao_atividade', complement=f'inner join registro on registro.codigo = ultimoRegistro where codigoSessao = {sessao['ultimaSessao']} and codigoAtividade={atividade['codigoAtividade']}', fields='inicio, fim, codigoRA, ultimoRegistro')
+        if(len(atividadeSessaoAN) > 0):
+            atividadeSessaoAN = atividadeSessaoAN[0]
+            atividadeSessaoAN['inicio'] = u.formatHMS(atividadeSessaoAN['inicio'].total_seconds())
+            atividadeSessaoAN['fim'] = u.formatHMS(atividadeSessaoAN['fim'].total_seconds())
+            print(atividadeSessaoAN)
+            tempoDecorrido = u.diffHoras(atividadeSessaoAN['inicio'], atividadeSessaoAN['fim'])
+            #tempoDecorrido = u.diffHoras(u.stringHoraToObject(atividadeSessaoAN['inicio']), u.stringHoraToObject(atividadeSessaoAN['fim']))
+            print(tempoDecorrido)
+            if atividadeSessaoAN['ultimoRegistro'] is None:
+                pass
+            print(atividadeSessaoAN)
 
 def gerenciar(ciclo):
     print(ciclo)
@@ -318,7 +332,7 @@ def registrar(atividade):
 def gerenciarSessao():
     still = True
     while still:
-        sessoes = listAny('sessao',fields='codigo, codigoCiclo, nome, nome_ciclo, status, inicioData, fimData, tempoTotalDecimal, tempoTotal')
+        sessoes = listAny('sessao',fields='codigo, codigoCiclo, nome, nome_ciclo, status, inicioData, fimData, tempoTotalDecimal, tempoTotal, ultimaSessao')
         print(imprimirMenu(sessoes))
         print('[b] - back')
         r = input('R: ')
@@ -329,6 +343,7 @@ def gerenciarSessao():
         if sessaoEscolhida['status'] == 'finalizada':
             print('essa sessão já está terminada')
             continue
+        registroAndiantado(sessaoEscolhida)
         atividadesSessao = listAny('sessao_atividade',complement=f"where codigoSessao = {sessaoEscolhida['codigo']}")
         for i in atividadesSessao:
             if i['ultimoRegistro'] is None:
