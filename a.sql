@@ -107,11 +107,10 @@ select * from sessao;
 select * from registro;
 
 UPDATE sessao_atividade set ultimoRegistro = null;
-update registro set codigoSessaoAtividade = null,  codigoRA = null;
+update registro set codigoRAnd = null;
 
-DELETE FROM sessao where codigo=20;
-DELETE FROM sessao_atividade where codigoSessao=20;
-DELETE FROM registro;
+DELETE FROM sessao where codigo=22;
+DELETE from registro where codigo > 34;
 DELETE FROM ciclo_atividade;
 DELETE FROM ciclo;
 DELETE from atividade where codigo IN (3, 4, 5, 6, 7);
@@ -124,8 +123,9 @@ select sum(porcentagemTempoTotal) from ciclo_atividade;
 SELECT * FROM ciclo;
 
 SELECT * FROM sessao;
-SELECT * FROM sessao_atividade;
-SELECT * FROM registro;
+DELETE FROM sessao_atividade where codigoSessao = 22;
+select * from sessao_atividade where codigoSessao = 22;
+SELECT * FROM registro where codigo > 34;
 
 SELECT sum(tempoAFazer), sum(tempoAFazerdecimal) FROM sessao_atividade;
 SELECT * FROM sessao where status='finalizada' and codigoCiclo=5 order by fimData desc limit 0;
@@ -139,4 +139,4 @@ SELECT * FROM sessao_atividade;
 SELECT count(*), codigo from sessao_atividade where codigoSessao in (16,20) group by codigoAtividade having count(*) > 1;
 
 SELECT * FROM sessao_atividade inner join registro on registro.codigo = ultimoRegistro where codigoSessao = 16 and codigoAtividade=8;
-SELECT * FROM sessao_atividade inner join registro on registro.codigo = ultimoRegistro where codigoSessao = 16 and codigoAtividade=8;
+SELECT registro.nomeAtividade, registro.inicio, registro.fim,registro.data, registro.codigoRA, ultimoRegistro, ra.tempoAFazerD, sessao.tempoTotalDecimal, porcentagemTempoTotal FROM sessao_atividade inner join registro on registro.codigo = ultimoRegistro left join registro as ra on registro.codigoRA = ra.codigo inner join sessao on codigoSessao = sessao.codigo where codigoSessao = 16;
