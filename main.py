@@ -1,5 +1,6 @@
 
 import math
+import datetime
 
 def horaParaHorasBonita(horasFeia):
     segundos = horasFeia * 3600
@@ -87,7 +88,7 @@ if(teste):
 
 while True and not teste:
     print("====================TASK-MANAGER====================")
-    r = input('[1] - converte horas em decimal(ex: 4.80) para horas em (h:m:s)\n[2] - calcula diferença entre marcos temporais\n[3] - Soma horas\n[4] - marca o tempo cumprido de atividade\n[5] - sair\nR: ')
+    r = input('[1] - converte horas em decimal(ex: 4.80) para horas em (h:m:s)\n[2] - calcula diferença entre marcos temporais\n[3] - Soma horas\n[4] - marca o tempo cumprido de atividade\n[5] - ver momento atual\n[6] - sair\nR: ')
     if r == '1':
         print('CONVERSOR-HORA-DECIMAL-HORA-NORMAL')
         hora = float(input("Digite a hora a ser mostrada: "))
@@ -121,7 +122,9 @@ while True and not teste:
         print(f"tempo decorrido: {objetoHorasParaStringHoras(feito)}")
         print(subTotalTempo(tempo, feito))
 
-    elif r == '5':
+    elif r== '5':
+        print(f'momento Atual: {datetime.datetime.now().strftime("%H:%M:%S")}')
+    elif r == '6':
         break
 
 
