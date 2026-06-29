@@ -1,6 +1,9 @@
 CREATE database TK;
 USE TK;
+USE tkjava;
 
+select * from atividade;
+select * from ciclo_atividade;
 CREATE TABLE ciclo(
 	codigo INTEGER primary key auto_increment,
     nome text,
@@ -81,6 +84,7 @@ ALTER TABLE sessao ADD COLUMN filled text;
 
 SELECT * from sessao_Atividade;
 select * from registro;
+
 
 ALTER TABLE sessao_Atividade add column tempoAFazer time;
 ALTER TABLE sessao_Atividade add column tempoAFazerdecimal real;
